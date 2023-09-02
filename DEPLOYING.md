@@ -14,7 +14,7 @@ Create a new server. Configure remote address:
 git remote add heroku SERVER_ADDRESS
 ```
 
-Set environment variables. Add [buildpack](https://github.com/gerynugrh/heroku-google-application-credentials-buildpack).
+Set environment variables. Add Python buildpack, then [google credentials buildpack](https://github.com/gerynugrh/heroku-google-application-credentials-buildpack).
 
 ```sh
 heroku config:set APP_ENV="production"

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     print("FETCH STATUSES...")
     since_id = results[0]["status_id"] if any(results) else None
     print("SINCE:", since_id)
-    timeline = truth.get_user_timeline(username=username, since_id=since_id)
+    timeline = truth.get_user_timeline(username=username, since_id=since_id, verbose=True)
 
     print("--------------------")
     print("PARSE STATUSES...")

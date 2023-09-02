@@ -34,3 +34,5 @@ Deploy:
 ```sh
 git push heroku main
 ```
+
+Turn on the desired processes (see Procfile).

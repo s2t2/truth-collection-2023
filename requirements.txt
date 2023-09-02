@@ -4,7 +4,10 @@ python-dotenv
 
 # we are maintaining a fork of the truthbrush package from stanfordio
 # because this package is not on PyPI:
-git+https://github.com/s2t2/truthbrush.git
+#git+https://github.com/stanfordio/truthbrush.git
+#git+https://github.com/s2t2/truthbrush.git
+git+https://github.com/s2t2/truthbrush.git@pull-since-latest
+#-e /Users/mjr/projects/s2t2/truthbrush
 
 google-cloud-bigquery #==3.2.0 # for interfacing with the BigQuery API
 #google-cloud-storage # for interfacing with Google Cloud Storage

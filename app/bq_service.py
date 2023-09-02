@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from functools import cached_property
 
 from dotenv import load_dotenv
 from google.cloud import bigquery
@@ -14,10 +15,17 @@ GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # i
 DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="project-name.database_name") # "MY_PROJECT.MY_DATASET"
 
 
+def generate_timestamp(dt=None):
+    """Formats datetime object for storing in BigQuery. Uses current time by default. """
+    dt = dt or datetime.now()
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
 class BigQueryService():
 
-    def __init__(self, client=None):
+    def __init__(self, client=None, dataset_address=DATASET_ADDRESS):
         self.client = client or bigquery.Client()
+        self.dataset_address = dataset_address
 
     def execute_query(self, sql, verbose=True):
         if verbose == True:
@@ -39,11 +47,11 @@ class BigQueryService():
         for i in range(0, len(my_list), batch_size):
             yield my_list[i : i + batch_size]
 
-    @staticmethod
-    def generate_timestamp(dt=None):
-        """Formats datetime object for storing in BigQuery. Uses current time by default. """
-        dt = dt or datetime.now()
-        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    #@staticmethod
+    #def generate_timestamp(dt=None):
+    #    """Formats datetime object for storing in BigQuery. Uses current time by default. """
+    #    dt = dt or datetime.now()
+    #    return dt.strftime("%Y-%m-%d %H:%M:%S")
 
     def insert_records_in_batches(self, table, records):
         """
@@ -61,6 +69,51 @@ class BigQueryService():
         for batch in batches:
             errors += self.client.insert_rows(table, batch)
         return errors
+
+    # MIGRATIONS
+
+    def migrate_timeline_statuses_table(self, destructive=False):
+        """WARNING: DESTRUCTIVE MODE WILL DELETE THE TABLE!!!"""
+        sql = ""
+        if destructive:
+            sql += f"DROP TABLE IF EXISTS {self.dataset_address}.timeline_statuses; "
+
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS {self.dataset_address}.timeline_statuses(
+                -- collect identifiers as strings for now, will convert to int later if possible for faster joins
+
+                status_id STRING, -- todo: INT64
+                user_id STRING, -- todo: INT64
+                username STRING,
+                created_at TIMESTAMP,
+                lang STRING,
+                content STRING, -- HTML text
+
+                group_id STRING, -- todo: INT64
+                group_slug STRING,
+
+                reply_status_id STRING, -- todo: INT64
+                reply_user_id STRING, -- todo: INT64
+
+                media_type STRING,
+                media_url STRING,
+
+                mention_id STRING, -- todo: INT64
+                mention_username STRING,
+
+                tags ARRAY<STRING>,
+
+                collected_at TIMESTAMP -- FYI some metadata from us
+
+            );
+        """
+        self.execute_query(sql)
+
+    # TABLE REFERENCES
+
+    @cached_property
+    def timeline_statuses_table(self):
+        return self.client.get_table(f"{self.dataset_address}.timeline_statuses") # API call
 
 
 

@@ -1,8 +1,7 @@
 
 .DS_Store
 
-google-credentials.json
-
+google-credentials*.json
 
 
 # Byte-compiled / optimized / DLL files

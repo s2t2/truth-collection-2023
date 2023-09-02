@@ -14,20 +14,15 @@ TRUTH_USERNAME = os.getenv("TRUTH_USERNAME")
 TRUTH_PASSWORD = os.getenv("TRUTH_PASSWORD")
 COLLECTION_USERNAME= os.getenv("COLLECTION_USERNAME", default="realDonaldTrump")
 
-BEGINNING_OF_TIME = datetime(2022, 1, 1, 1, 1, 1, tzinfo=timezone.utc) # start of timeline
-
 class TruthService:
     def __init__(self, username=TRUTH_USERNAME, password=TRUTH_PASSWORD):
-        #self.username = username
-        #self.password = password
         self.client = Api(username=username, password=password)
 
     def get_user(self, username=COLLECTION_USERNAME):
         return self.client.lookup(user_handle=username)
 
-    def get_user_timeline(self, username=COLLECTION_USERNAME, created_after=BEGINNING_OF_TIME):
-        """returns a generator"""
-        return self.client.pull_statuses(username=username, created_after=created_after, replies=True)
+    def get_user_timeline(self, username=COLLECTION_USERNAME, replies=True, verbose=False, since_id=None, created_after=None):
+        return self.client.pull_statuses(username=username, replies=replies, verbose=verbose, since_id=since_id, created_after=created_after)
 
 
 

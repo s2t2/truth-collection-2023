@@ -43,3 +43,23 @@ Connect to the social network:
 ```sh
 python -m app.truth_service
 ```
+
+### Timeline Collection
+
+First migrate timeline statuses table:
+
+```sh
+DESTRUCTIVE=false python -m app.bq_migrate.timeline_statuses
+```
+
+Collect timeline statuses for a given user:
+
+```sh
+python -m app.bq_collect.timeline_statuses
+```
+
+## Testing
+
+```sh
+pytest
+```

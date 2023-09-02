@@ -1,8 +1,5 @@
 
-import os
-#from dotenv import load_dotenv
-from datetime import datetime
-
+from app import server_sleep
 from app.bq_service import BigQueryService, generate_timestamp
 from app.truth_service import COLLECTION_USERNAME, TruthService, parse_status
 
@@ -30,7 +27,7 @@ if __name__ == "__main__":
     print("FETCH STATUSES...")
     since_id = results[0]["status_id"] if any(results) else None
     print("SINCE:", since_id)
-    timeline = truth.get_user_timeline(username=username, since_id=since_id)
+    timeline = truth.get_user_timeline(username=username, since_id=since_id, verbose=True)
 
     print("--------------------")
     print("PARSE STATUSES...")
@@ -49,3 +46,5 @@ if __name__ == "__main__":
     if any(errors):
         print("ERRORS:")
         print(errors)
+
+    server_sleep()

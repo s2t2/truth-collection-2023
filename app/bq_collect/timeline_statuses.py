@@ -4,11 +4,9 @@ from app.bq_service import BigQueryService, generate_timestamp
 from app.truth_service import COLLECTION_USERNAME, TruthService, parse_status
 
 
-if __name__ == "__main__":
-
-    bq = BigQueryService()
-    truth = TruthService()
-    username = COLLECTION_USERNAME
+def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, truth=None, verbose=True):
+    bq = bq or BigQueryService()
+    truth = truth or TruthService()
 
     print("--------------------")
     print("PREVIOUS RESULTS?")
@@ -27,7 +25,7 @@ if __name__ == "__main__":
     print("FETCH STATUSES...")
     since_id = results[0]["status_id"] if any(results) else None
     print("SINCE:", since_id)
-    timeline = truth.get_user_timeline(username=username, since_id=since_id, verbose=True)
+    timeline = truth.get_user_timeline(username=username, since_id=since_id, verbose=verbose)
 
     print("--------------------")
     print("PARSE STATUSES...")
@@ -46,5 +44,12 @@ if __name__ == "__main__":
     if any(errors):
         print("ERRORS:")
         print(errors)
+
+
+
+
+if __name__ == "__main__":
+
+    update_timeline_statuses()
 
     server_sleep()

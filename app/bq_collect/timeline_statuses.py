@@ -9,7 +9,7 @@ def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, truth=None, 
     truth = truth or TruthService()
 
     print("------------")
-    print(f"FETCH STATUSES FOR '{username}'...")
+    print(f"FETCHING STATUSES FOR '{username}'...")
 
     if not since_id:
         # what is the latest status we have for this person?
@@ -36,12 +36,13 @@ def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, truth=None, 
         records.append(record)
     print("FETCHED:", len(records))
 
-    print("SAVE STATUSES...")
-    table = bq.timeline_statuses_table # api call table reference. after initial migration table ref might not yet be available, so we cound consider check here first before going through the trouble of fetching the timeline
-    errors = bq.insert_records_in_batches(table, records)
-    if any(errors):
-        print("ERRORS:")
-        print(errors)
+    if any(records):
+        print("SAVING STATUSES...")
+        table = bq.timeline_statuses_table # api call table reference. after initial migration table ref might not yet be available, so we cound consider check here first before going through the trouble of fetching the timeline
+        errors = bq.insert_records_in_batches(table, records)
+        if any(errors):
+            print("ERRORS:")
+            print(errors)
 
 
 

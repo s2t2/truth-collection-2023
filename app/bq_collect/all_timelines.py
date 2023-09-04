@@ -17,41 +17,39 @@ if __name__ == "__main__":
     users_limit = USERS_LIMIT
 
     print("--------------------")
-    print("COLLECTED USERS...")
-    # which users timelines have we previously collected
-    collected_df = bq.query_to_df(f"""
-        SELECT DISTINCT UPPER(username) as username
-        FROM {bq.dataset_address}.timeline_statuses
-    """)
-    collected_usernames = collected_df["username"].tolist()
-    print(len(collected_usernames))
-
-    print("--------------------")
-    print("MENTIONED USERS...")
-    # which users have been mentioned by any previously collected
+    print("PRIORITIZING USERS FOR COLLECTION...")
     sql = f"""
-        SELECT UPPER(mention_username) as mention_username
-            ,count(DISTINCT status_id) as status_count
-        FROM {bq.dataset_address}.timeline_statuses
-        WHERE mention_username IS NOT NULL
-        GROUP BY 1
-        ORDER BY 2 DESC
+        SELECT coalesce(collected.username, mentioned.username) as username
+            ,status_count, latest_status_id
+            ,mention_by_user_count ,mention_status_count
+
+        FROM (
+            SELECT UPPER(username) as username
+                ,count(DISTINCT status_id) as status_count
+                ,max(status_id) as latest_status_id
+            FROM {bq.dataset_address}.timeline_statuses
+            GROUP BY 1
+            -- ORDER BY 2 DESC
+        ) collected
+
+        FULL OUTER JOIN (
+            SELECT UPPER(mention_username) as username
+                ,count(DISTINCT user_id) as mention_by_user_count
+                ,count(DISTINCT status_id) as mention_status_count
+            FROM {bq.dataset_address}.timeline_statuses
+            WHERE mention_username IS NOT NULL
+            GROUP BY 1
+        ) mentioned on collected.username = mentioned.username
+
+        ORDER BY 4 DESC, 2 DESC
     """
     if users_limit:
         sql += f" LIMIT {int(users_limit)}"
-    mentioned_df = bq.query_to_df(sql).sort_values(by="status_count", ascending=False) # apparently sort order not coming through to df?
-    mentioned_usernames = mentioned_df["mention_username"].tolist()
-    print(len(mentioned_usernames))
-    print(mentioned_df.head())
 
-    print("--------------------")
-    print("USERS FOR COLLECTION...")
-    usernames = sorted(list(set(mentioned_usernames + collected_usernames)))
-    print(len(usernames))
-
-    for i, username in enumerate(usernames):
-        print("--------------------")
-        print("USERNAME:", i, username)
-        update_timeline_statuses(username=username, bq=bq, truth=truth, verbose=False)
+    users_df = bq.query_to_df(sql).sort_values(by=["mention_by_user_count", "status_count"], ascending=False) # apparently sort order not coming through to df?
+    for i, row in users_df.iterrows():
+        username = row["username"]
+        since_id = row["latest_status_id"]
+        update_timeline_statuses(username=username, bq=bq, truth=truth, verbose=False, since_id=since_id)
 
     server_sleep()

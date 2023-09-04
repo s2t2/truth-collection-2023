@@ -56,12 +56,16 @@ Collect timeline statuses for a given user:
 
 ```sh
 python -m app.bq_collect.timeline_statuses
+
+#COLLECTION_USERNAME="abc123" python -m app.bq_collect.timeline_statuses
 ```
 
-Collect timeline statuses for mentioned users:
+Collect timeline statuses for all previously collected and mentioned users:
 
 ```sh
 python -m app.bq_collect.all_timelines
+
+# USERS_LIMIT=5 python -m app.bq_collect.all_timelines
 ```
 
 ## Testing

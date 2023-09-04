@@ -46,7 +46,8 @@ if __name__ == "__main__":
     if users_limit:
         sql += f" LIMIT {int(users_limit)}"
 
-    users_df = bq.query_to_df(sql).sort_values(by=["mention_by_user_count", "status_count"], ascending=False) # apparently sort order not coming through to df?
+    users_df = bq.query_to_df(sql, verbose=False).sort_values(by=["mention_by_user_count", "status_count"], ascending=False) # apparently sort order not coming through to df?
+    print("USERS:", len(users_df))
     for i, row in users_df.iterrows():
         username = row["username"]
         since_id = row["latest_status_id"]

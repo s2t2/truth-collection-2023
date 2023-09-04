@@ -20,7 +20,7 @@ def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, truth=None, 
             ORDER BY created_at DESC
             LIMIT 1
         """
-        results = list(bq.execute_query(sql))
+        results = list(bq.execute_query(sql, verbose=False))
         if any(results):
             since_id = results[0]["status_id"]
             #since = results[0]["created_at"]

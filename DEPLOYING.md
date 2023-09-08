@@ -4,7 +4,7 @@ Login to Render dashboard.
 
 Create a new background worker. Provide the URL of this repo.
 
-Oh, each process costs $7. Why don't we use Heroku with many processes for  $7.
+Oh, each process costs $7. Why don't we use Heroku with many processes for  $7. EDIT: oh no, each process is $7? We could use Render maybe instead (todo).
 
 # Deploying to Heroku
 

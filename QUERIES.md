@@ -171,3 +171,29 @@ FR	| 337	| 4,183
 LA	| 332	| 2,582
 JV	| 330	| 3,077
 PT	| 328	| 4,200
+
+
+Top tags:
+
+```sql
+-- top tags (the ones used by the most users)
+SELECT 
+  RTRIM(LTRIM(tag)) as tag
+  ,count(distinct user_id) as user_count -- TRUTH with 242, MAGA with 225, 
+  ,count(distinct status_id) as status_count
+FROM `tweet-research-shared.truth_2023.timeline_status_tags_flat_20230906`
+GROUP BY tag
+ORDER BY user_count desc
+LIMIT 250
+```
+
+Mentions:
+
+```sql
+SELECT 
+  count(distinct status_id) as status_count  -- how many posts mention this user?
+  , count(distinct user_id) as user_count -- how many users mention this user?
+FROM `tweet-research-shared.truth_2023.timeline_statuses_20230906` 
+WHERE upper(mention_username) = upper('realdonaldtrump')
+```
+

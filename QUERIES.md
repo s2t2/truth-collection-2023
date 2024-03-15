@@ -154,7 +154,7 @@ LIMIT 10
 ```
 
 
-lang	user_count	status_count
+lang	| user_count	| status_count
 --- | --- | ---
 EN	| 472	| 4,272,301
 NULL 	| 470	| 3,551,877

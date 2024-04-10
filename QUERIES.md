@@ -177,9 +177,9 @@ Top tags:
 
 ```sql
 -- top tags (the ones used by the most users)
-SELECT 
+SELECT
   RTRIM(LTRIM(tag)) as tag
-  ,count(distinct user_id) as user_count -- TRUTH with 242, MAGA with 225, 
+  ,count(distinct user_id) as user_count -- TRUTH with 242, MAGA with 225,
   ,count(distinct status_id) as status_count
 FROM `tweet-research-shared.truth_2023.timeline_status_tags_flat_20230906`
 GROUP BY tag
@@ -190,10 +190,34 @@ LIMIT 250
 Mentions:
 
 ```sql
-SELECT 
+SELECT
   count(distinct status_id) as status_count  -- how many posts mention this user?
   , count(distinct user_id) as user_count -- how many users mention this user?
-FROM `tweet-research-shared.truth_2023.timeline_statuses_20230906` 
+FROM `tweet-research-shared.truth_2023.timeline_statuses_20230906`
 WHERE upper(mention_username) = upper('realdonaldtrump')
 ```
 
+
+
+Text of trump posts (save to CSV on drive as "trump_english_posts_20230906.csv"):
+
+```sql
+SELECT --* -- count(distinct status_id) as status_count
+    status_id
+    ,user_id
+    ,username
+    ,created_at
+    ,lang
+    ,content
+    ,group_id, group_slug
+    ,reply_status_id, reply_user_id
+    ,mention_id, mention_username
+    ,media_type ,media_url
+    ,array_to_string(tags, ", ") as tags_csv -- can't export to CSV if this is in array format, so convert to string
+    ,collected_at
+
+FROM `tweet-research-shared.truth_2023.timeline_statuses_20230906`
+WHERE upper(username) = 'REALDONALDTRUMP' -- 10,346
+   AND lang = "en" -- 4201
+
+```

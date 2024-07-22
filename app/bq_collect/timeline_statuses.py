@@ -1,12 +1,17 @@
 
 from app import server_sleep
 from app.bq_service import BigQueryService, generate_timestamp
-from app.truth_service import COLLECTION_USERNAME, TruthService
+from app.truth_service import COLLECTION_USERNAME, TruthService, VERBOSE_MODE
 
 
-def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, ts=None, verbose=True, since_id=None):
+def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, ts=None, verbose=VERBOSE_MODE, since_id=None): # user_id=None
     bq = bq or BigQueryService()
     ts = ts or TruthService()
+
+    #if user_id:
+    #    where = f"user_id = '{user_id}'"
+    #else:
+    #    where = f"UPPER(username) = '{username.upper()}'"
 
     if not since_id:
         # what is the latest status we have for this person?
@@ -24,6 +29,14 @@ def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, ts=None, ver
 
     print("------------")
     print(f"FETCHING STATUSES FOR '{username}'", "SINCE:", since_id, "...")
+    #params = {"since_id": since_id, "verbose": verbose}
+    #if user_id:
+    #    params["user_id"] = user_id
+    #    print(f"FETCHING STATUSES FOR '{user_id}'", "SINCE:", since_id, "...")
+    #else:
+    #    params["username"] = username
+    #    print(f"FETCHING STATUSES FOR '{username}'", "SINCE:", since_id, "...")
+    #timeline = ts.get_user_timeline(**params)
     timeline = ts.get_user_timeline(username=username, since_id=since_id, verbose=verbose)
 
     records = []

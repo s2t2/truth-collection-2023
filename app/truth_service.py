@@ -24,7 +24,6 @@ class TruthService:
         return self.client.lookup(user_handle=username)
 
     def get_user_timeline(self, username=COLLECTION_USERNAME, replies=True, verbose=VERBOSE_MODE, since_id=None, created_after=None):
-        print(verbose)
         return self.client.pull_statuses(username=username, replies=replies, verbose=verbose, since_id=since_id, created_after=created_after)
 
     @staticmethod

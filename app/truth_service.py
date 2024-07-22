@@ -27,35 +27,6 @@ class TruthService:
         return self.client.pull_statuses(username=username, replies=replies, verbose=verbose, since_id=since_id, created_after=created_after)
 
     @staticmethod
-    def parse_tag(tag):
-        # tag["history"]
-        #>[
-        #>{'accounts': '1453', 'day': '1721606400', 'days_ago': 0, 'uses': '4272'},
-        #>{'accounts': '860', 'day': '1721520000', 'days_ago': 1, 'uses': '2277'},
-        #>{'accounts': '981', 'day': '1721433600', 'days_ago': 2, 'uses': '2548'},
-        #>{'accounts': '1255', 'day': '1721347200', 'days_ago': 3, 'uses': '3373'},
-        #>{'accounts': '1058', 'day': '1721260800', 'days_ago': 4, 'uses': '2995'},
-        #>{'accounts': '1039', 'day': '1721174400', 'days_ago': 5, 'uses': '2978'},
-        #>{'accounts': '1489', 'day': '1721088000', 'days_ago': 6, 'uses': '3907'}
-        #>]
-        # looks like they are in reverse chronological order
-        users, uses, days = [], [], []
-
-        for item in tag["history"]:
-            users.append(item["accounts"])
-            uses.append(item["uses"]) # could be posts. or maybe double counted if duplicated tag appears in single post?
-            days.append(item["day"])
-
-        return {
-            "name": tag["name"],
-            "recent_statuses_count": tag["recent_statuses_count"],
-            #"recent_history": tag["recent_history"],
-            "recent_users": users,
-            "recent_uses": uses,
-            "recent_days": days
-        }
-
-    @staticmethod
     def parse_status(status):
         # PARSER FUNCTIONS (FOR CONVERTING RAW DATA INTO DATABASE RECORDS):
 
@@ -130,7 +101,34 @@ class TruthService:
 
         }
 
+    @staticmethod
+    def parse_trending_tag(tag):
+        # tag["history"]
+        #>[
+        #>{'accounts': '1453', 'day': '1721606400', 'days_ago': 0, 'uses': '4272'},
+        #>{'accounts': '860', 'day': '1721520000', 'days_ago': 1, 'uses': '2277'},
+        #>{'accounts': '981', 'day': '1721433600', 'days_ago': 2, 'uses': '2548'},
+        #>{'accounts': '1255', 'day': '1721347200', 'days_ago': 3, 'uses': '3373'},
+        #>{'accounts': '1058', 'day': '1721260800', 'days_ago': 4, 'uses': '2995'},
+        #>{'accounts': '1039', 'day': '1721174400', 'days_ago': 5, 'uses': '2978'},
+        #>{'accounts': '1489', 'day': '1721088000', 'days_ago': 6, 'uses': '3907'}
+        #>]
+        # looks like they are in reverse chronological order
+        users, uses, days = [], [], []
 
+        for item in tag["history"]:
+            users.append(item["accounts"])
+            uses.append(item["uses"]) # could be posts. or maybe double counted if duplicated tag appears in single post?
+            days.append(item["day"])
+
+        return {
+            "name": tag["name"],
+            "recent_statuses_count": tag["recent_statuses_count"],
+            #"recent_history": tag["recent_history"],
+            "recent_users": users,
+            "recent_uses": uses,
+            "recent_days": days
+        }
 
 
 def to_utc(date_str):
@@ -155,7 +153,7 @@ if __name__ == "__main__":
     service = TruthService()
 
     tags = service.client.tags()
-    records = [service.parse_tag(tag) for tag in tags]
+    records = [service.parse_trending_tag(tag) for tag in tags]
     print(len(records))
     df = DataFrame(records)
     print(df.head())

@@ -1,5 +1,5 @@
 
-from app import server_sleep
+#from app import server_sleep
 from app.bq_service import BigQueryService, generate_timestamp
 from app.truth_service import TruthService #, VERBOSE_MODE
 
@@ -36,4 +36,4 @@ if __name__ == "__main__":
 
     update_trending_topics()
 
-    server_sleep()
+    # we are running this as a scheduled job, so no need to sleep or repeat

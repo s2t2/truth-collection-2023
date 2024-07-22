@@ -2,7 +2,7 @@
 import os
 from concurrent.futures import ThreadPoolExecutor #, as_completed
 
-from app import server_sleep
+#from app import server_sleep
 
 from app.bq_collect.timeline_statuses import update_timeline_statuses
 from app.bq_collect.all_timelines import AllTimelinesJob
@@ -23,5 +23,3 @@ if __name__ == "__main__":
             username = row["username"]
             since_id = row["latest_status_id"]
             executor.submit(update_timeline_statuses, username=username, bq=job.bq, ts=job.ts, verbose=False, since_id=since_id)
-
-    server_sleep()

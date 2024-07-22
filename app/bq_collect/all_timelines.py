@@ -65,4 +65,8 @@ if __name__ == "__main__":
         since_id = row["latest_status_id"]
         update_timeline_statuses(username=username, bq=job.bq, ts=job.ts, since_id=since_id)
 
-    server_sleep()
+    # since this job will take a variable length,
+    # instead of scheduling it,
+    # we run continuously, but with a brief break between runs
+    sleep_time = (8 * 60 * 60) # hours * mins * sec
+    server_sleep(seconds=sleep_time)

@@ -62,4 +62,5 @@ if __name__ == "__main__":
 
     update_timeline_statuses()
 
-    server_sleep()
+    sleep_time = (8 * 60 * 60) # hours * mins * secs
+    server_sleep(seconds=sleep_time)

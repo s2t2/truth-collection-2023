@@ -146,7 +146,7 @@ def to_utc(date_str):
 if __name__ == "__main__":
 
     from pandas import DataFrame
-    from app.exporters import EXPORTS_DIR, Database
+    from app.db import EXPORTS_DIR, Database
 
     db = Database()
 

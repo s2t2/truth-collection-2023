@@ -1,5 +1,5 @@
 
-from app import server_sleep
+#from app import server_sleep
 from app.bq_service import BigQueryService, generate_timestamp
 from app.truth_service import COLLECTION_USERNAME, TruthService, VERBOSE_MODE
 
@@ -62,5 +62,6 @@ if __name__ == "__main__":
 
     update_timeline_statuses()
 
-    sleep_time = (8 * 60 * 60) # hours * mins * secs
-    server_sleep(seconds=sleep_time)
+    # for a single user, can run via cron job / heroku scheduler
+    # once per day,
+    # without sleeping or restarting

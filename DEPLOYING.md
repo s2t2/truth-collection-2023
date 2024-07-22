@@ -1,10 +1,4 @@
-# Deploying to Render
 
-Login to Render dashboard.
-
-Create a new background worker. Provide the URL of this repo.
-
-Oh, each process costs $7. Why don't we use Heroku with many processes for  $7. EDIT: oh no, each process is $7? We could use Render maybe instead (todo).
 
 # Deploying to Heroku
 
@@ -35,4 +29,9 @@ Deploy:
 git push heroku main
 ```
 
-Turn on the desired processes (see Procfile).
+Turn on the desired processes (see Procfile), or actually schedule the following:
+
+Job	| Dyno Size	| Frequency
+--- | --- | ---
+`python -m app.bq_collect.timeline_statuses` | Basic | Daily at 6:30 AM UTC
+`python -m app.bq_collect.trending_tags` | Basic | Daily at 6:00 AM UTC

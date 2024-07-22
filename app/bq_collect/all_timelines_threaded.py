@@ -22,6 +22,6 @@ if __name__ == "__main__":
             #user_id = row["user_id"]
             username = row["username"]
             since_id = row["latest_status_id"]
-            executor.submit(update_timeline_statuses, username=username, bq=job.bq, truth=job.truth, verbose=False, since_id=since_id)
+            executor.submit(update_timeline_statuses, username=username, bq=job.bq, ts=job.ts, verbose=False, since_id=since_id)
 
     server_sleep()

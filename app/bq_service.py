@@ -110,11 +110,38 @@ class BigQueryService():
         """
         self.execute_query(sql)
 
+    def migrate_trending_tags_table(self, destructive=False):
+        """WARNING: DESTRUCTIVE MODE WILL DELETE THE TABLE!!!"""
+        sql = ""
+        if destructive:
+            sql += f"DROP TABLE IF EXISTS {self.dataset_address}.trending_tags; "
+
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS {self.dataset_address}.trending_tags(
+
+                name                    STRING,
+                recent_status_count     INT64,
+                -- recent_history       ARRAY<STRING>,
+                recent_users            ARRAY<INT64>,
+                recent_uses             ARRAY<INT64>,
+                recent_days             ARRAY<INT64>,
+                -- todo v2: calculate mean and median
+
+                collected_at            TIMESTAMP -- some metadata from us
+
+            );
+        """
+        self.execute_query(sql)
+
     # TABLE REFERENCES
 
     @cached_property
     def timeline_statuses_table(self):
         return self.client.get_table(f"{self.dataset_address}.timeline_statuses") # API call
+
+    @cached_property
+    def trending_tags_table(self):
+        return self.client.get_table(f"{self.dataset_address}.trending_tags") # API call
 
 
 

@@ -93,7 +93,9 @@ class Database:
         # convert lists to CSV strings (b/c SQLite can't handle nested data)
         for column in df.columns:
             if df[column].apply(lambda x: isinstance(x, list)).any():
-                df[column] = df[column].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
+                #df[column] = df[column].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
+                # work with list of integers as well:
+                df[column] = df[column].apply(lambda x: ', '.join(map(str, x)) if isinstance(x, list) else x)
 
         # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html
         df.to_sql(table_name, con=self.connection,

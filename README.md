@@ -49,8 +49,10 @@ python -m app.truth_service
 First migrate timeline statuses table:
 
 ```sh
-DESTRUCTIVE=false python -m app.bq_migrate.timeline_statuses
+DESTRUCTIVE=true python -m app.bq_migrate.timeline_statuses
 ```
+
+Might have to wait a moment for the table to get created.
 
 Collect timeline statuses for a given user:
 

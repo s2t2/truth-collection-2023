@@ -1,12 +1,12 @@
 
 from app import server_sleep
 from app.bq_service import BigQueryService, generate_timestamp
-from app.truth_service import COLLECTION_USERNAME, TruthService, parse_status
+from app.truth_service import COLLECTION_USERNAME, TruthService
 
 
-def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, truth=None, verbose=True, since_id=None):
+def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, ts=None, verbose=True, since_id=None):
     bq = bq or BigQueryService()
-    truth = truth or TruthService()
+    ts = ts or TruthService()
 
     if not since_id:
         # what is the latest status we have for this person?
@@ -24,19 +24,19 @@ def update_timeline_statuses(username=COLLECTION_USERNAME, bq=None, truth=None, 
 
     print("------------")
     print(f"FETCHING STATUSES FOR '{username}'", "SINCE:", since_id, "...")
-    timeline = truth.get_user_timeline(username=username, since_id=since_id, verbose=verbose)
+    timeline = ts.get_user_timeline(username=username, since_id=since_id, verbose=verbose)
 
     records = []
     collected_at = generate_timestamp() # using the same collection time for each run may help identify collection runs later
     for status in timeline:
-        record = parse_status(status)
+        record = ts.parse_status(status)
         record["collected_at"] = collected_at # consider adding this to the parse_status method
         records.append(record)
     print("FETCHED:", len(records), f"FOR '{username}'")
 
     if any(records):
         print("SAVING...")
-        table = bq.timeline_statuses_table # api call table reference. after initial migration table ref might not yet be available, so we cound consider check here first before going through the trouble of fetching the timeline
+        table = bq.timeline_statuses_table # api call table reference. after initial migration table ref might not yet be available, so we could consider check here first before going through the trouble of fetching the timeline
         errors = bq.insert_records_in_batches(table, records)
         if any(errors):
             print("ERRORS:", f"FOR '{username}'")

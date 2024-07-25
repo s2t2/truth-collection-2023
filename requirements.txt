@@ -2,12 +2,21 @@
 
 python-dotenv
 
+# TRUTHBRUSH
+#
+# 2023:
 # we are maintaining a fork of the truthbrush package from stanfordio
 # because this package is not on PyPI:
-#git+https://github.com/stanfordio/truthbrush.git
+git+https://github.com/stanfordio/truthbrush.git
 #git+https://github.com/s2t2/truthbrush.git
-git+https://github.com/s2t2/truthbrush.git@timelines-2
+#git+https://github.com/s2t2/truthbrush.git@timelines-2 #
 #-e /Users/mjr/projects/s2t2/truthbrush
+#
+# 2024:
+# the PR has been merged!
+# and it is up on PyPI!
+#truthbrush
+
 
 google-cloud-bigquery #==3.2.0 # for interfacing with the BigQuery API
 #google-cloud-storage # for interfacing with Google Cloud Storage

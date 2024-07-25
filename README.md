@@ -44,13 +44,15 @@ Connect to the social network:
 python -m app.truth_service
 ```
 
-### Timeline Collection
+### User Timelines
 
 First migrate timeline statuses table:
 
 ```sh
-DESTRUCTIVE=false python -m app.bq_migrate.timeline_statuses
+DESTRUCTIVE=true python -m app.bq_migrate.timeline_statuses
 ```
+
+Might have to wait a moment for the table to get created.
 
 Collect timeline statuses for a given user:
 
@@ -69,6 +71,23 @@ python -m app.bq_collect.all_timelines
 ```sh
 python -m app.bq_collect.all_timelines_threaded
 # USERS_LIMIT=5 MAX_THREADS=3 python -m app.bq_collect.all_timelines_threaded
+```
+
+
+### Trending Tags
+
+First migrate the table:
+
+```sh
+DESTRUCTIVE=true python -m app.bq_migrate.trending_tags
+```
+
+Might have to wait a moment for the table to get created.
+
+Collect trending tags:
+
+```sh
+python -m app.bq_collect.trending_tags
 ```
 
 ## Testing

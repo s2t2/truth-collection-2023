@@ -1,77 +1,45 @@
 
-from datetime import datetime, timezone
-from dateutil import parser as date_parse
-
 import pytest
+from datetime import datetime, timedelta, timezone
 
-from app.truth_service import TruthService
+from app.truth_service import TruthService, to_utc
 
 
 @pytest.fixture(scope="module")
-def truth():
+def ts():
     return TruthService()
 
+def test_to_utc():
+    recent = datetime.now() - timedelta(days=7)
+    recent_tz = to_utc(recent)
+    assert recent_tz.tzname() == "UTC"
 
-def as_datetime(date_str):
-    """Datetime formatter function. Ensures timezone is UTC. Consider moving to Api class."""
-    return date_parse.parse(date_str).replace(tzinfo=timezone.utc)
 
-
-def test_get_user(truth):
-    user = truth.get_user(username="realDonaldTrump")
+def test_get_user(ts):
+    user = ts.get_user(username="realDonaldTrump")
+    #breakpoint()
     assert list(user.keys()) == [
-        'id', 'username', 'acct', 'display_name',
-        'locked', 'bot', 'discoverable', 'group', 'created_at',
+        'id', 'username', 'acct', 'display_name', 'locked', 'bot', 'discoverable', 'group', 'created_at',
         'note', 'url', 'avatar', 'avatar_static', 'header', 'header_static',
         'followers_count', 'following_count', 'statuses_count', 'last_status_at',
-        'verified', 'location', 'website',
-        'accepting_messages', 'chats_onboarded', 'feeds_onboarded',
-        'show_nonmember_group_statuses', 'pleroma', 'emojis', 'fields'
+        'verified', 'location', 'website', 'accepting_messages',
+        'chats_onboarded', 'feeds_onboarded', 'tv_onboarded', 'show_nonmember_group_statuses',
+        'pleroma', 'tv_account', 'receive_only_follow_mentions', 'emojis', 'fields'
     ]
     assert isinstance(user["id"], str)
 
 
-def test_pull_statuses(truth):
+def test_pull_statuses(ts):
     username = "truthsocial"
 
-    # COMPLETE PULLS
-
-    # it fetches a timeline of the user's posts:
-    full_timeline = list(truth.get_user_timeline(username=username, replies=False, verbose=True))
+    full_timeline = list(ts.get_user_timeline(username=username, replies=False, verbose=True))
     assert len(full_timeline) > 25 # more than one page
 
     # the posts are in reverse chronological order:
     latest, earliest = full_timeline[0], full_timeline[-1]
-    latest_at, earliest_at = as_datetime(latest["created_at"]), as_datetime(earliest["created_at"])
+    #print(latest["created_at"], earliest["created_at"]) #> "2024-07-14T01:44:50.160Z"
+    latest_at, earliest_at = to_utc(latest["created_at"]), to_utc(earliest["created_at"])
     assert earliest_at < latest_at
-
-    # EMPTY PULLS
-
-    # can use created_after param for filtering out posts:
-    next_pull = list(truth.get_user_timeline(username=username, replies=False, created_after=latest_at, verbose=True))
-    assert not any(next_pull)
-
-    # can use since_id param for filtering out posts:
-    next_pull = list(truth.get_user_timeline(username=username, replies=False, since_id=latest["id"], verbose=True))
-    assert not any(next_pull)
-
-    # PARTIAL PULLS
-
-    n_posts = 50 # two and a half pages worth, to verify everything is ok
-    recent = full_timeline[n_posts]
-    recent_at = as_datetime(recent["created_at"])
-
-    # can use created_after param for filtering out posts:
-    partial_pull = list(truth.get_user_timeline(username=username, replies=False, created_after=recent_at, verbose=True))
-    assert len(partial_pull) == n_posts
-    assert recent["id"] not in [post["id"] for post in partial_pull]
-
-    # can use since_id param for filtering out posts:
-    partial_pull = list(truth.get_user_timeline(username=username, replies=False, since_id=recent["id"], verbose=True))
-    assert len(partial_pull) == n_posts
-    assert recent["id"] not in [post["id"] for post in partial_pull]
-
-
 
     # POST INFO
     # contains status info

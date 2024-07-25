@@ -12,9 +12,9 @@ USERS_LIMIT = os.getenv("USERS_LIMIT")
 
 
 class AllTimelinesJob:
-    def __init__(self, bq=None, truth=None, users_limit=USERS_LIMIT):
+    def __init__(self, bq=None, ts=None, users_limit=USERS_LIMIT):
         self.bq = bq or BigQueryService()
-        self.truth = truth or TruthService()
+        self.ts = ts or TruthService()
         self.users_limit = users_limit
 
     @cached_property
@@ -60,8 +60,13 @@ if __name__ == "__main__":
     print("USERS:", len(users_df))
 
     for i, row in users_df.iterrows():
+        #user_id = row["user_id"]
         username = row["username"]
         since_id = row["latest_status_id"]
-        update_timeline_statuses(username=username, bq=job.bq, truth=job.truth, verbose=False, since_id=since_id)
+        update_timeline_statuses(username=username, bq=job.bq, ts=job.ts, since_id=since_id)
 
-    server_sleep()
+    # since this job will take a variable length,
+    # instead of scheduling it,
+    # we run continuously, but with a brief break between runs
+    sleep_time = (8 * 60 * 60) # hours * mins * sec
+    server_sleep(seconds=sleep_time)

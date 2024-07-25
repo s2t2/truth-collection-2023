@@ -82,23 +82,24 @@ class BigQueryService():
             CREATE TABLE IF NOT EXISTS {self.dataset_address}.timeline_statuses(
                 -- collect identifiers as strings for now, will convert to int later if possible for faster joins
 
-                status_id STRING, -- todo: INT64
-                user_id STRING, -- todo: INT64
+                status_id STRING, -- v2: convert to INT64
+                user_id STRING, -- v2: convert to INT64
                 username STRING,
                 created_at TIMESTAMP,
                 lang STRING,
-                content STRING, -- HTML text
+                content STRING, -- HTML text, for v2: also make a column of just the text, if possible
 
-                group_id STRING, -- todo: INT64
+                group_id STRING, -- v2: convert to INT64
                 group_slug STRING,
 
-                reply_status_id STRING, -- todo: INT64
-                reply_user_id STRING, -- todo: INT64
+                reply_status_id STRING, -- v2: convert to INT64
+                reply_user_id STRING, -- v2: convert to INT64
 
+                media_id STRING, -- v2: convert to INT64
                 media_type STRING,
                 media_url STRING,
 
-                mention_id STRING, -- todo: INT64
+                mention_id STRING, -- v2: convert to INT64
                 mention_username STRING,
 
                 tags ARRAY<STRING>,
@@ -109,11 +110,38 @@ class BigQueryService():
         """
         self.execute_query(sql)
 
+    def migrate_trending_tags_table(self, destructive=False):
+        """WARNING: DESTRUCTIVE MODE WILL DELETE THE TABLE!!!"""
+        sql = ""
+        if destructive:
+            sql += f"DROP TABLE IF EXISTS {self.dataset_address}.trending_tags; "
+
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS {self.dataset_address}.trending_tags(
+
+                name                    STRING,
+                recent_status_count     INT64,
+                -- recent_history       ARRAY<STRING>,
+                recent_users            ARRAY<INT64>,
+                recent_uses             ARRAY<INT64>,
+                recent_days             ARRAY<INT64>,
+                -- todo v2: calculate mean and median
+
+                collected_at            TIMESTAMP -- some metadata from us
+
+            );
+        """
+        self.execute_query(sql)
+
     # TABLE REFERENCES
 
     @cached_property
     def timeline_statuses_table(self):
         return self.client.get_table(f"{self.dataset_address}.timeline_statuses") # API call
+
+    @cached_property
+    def trending_tags_table(self):
+        return self.client.get_table(f"{self.dataset_address}.trending_tags") # API call
 
 
 

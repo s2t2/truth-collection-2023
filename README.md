@@ -32,6 +32,8 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Services
+
 Connect to BigQuery:
 
 ```sh
@@ -43,6 +45,23 @@ Connect to the social network:
 ```sh
 python -m app.truth_service
 ```
+
+### Trending Tags
+
+First migrate the table:
+
+```sh
+DESTRUCTIVE=true python -m app.bq_migrate.trending_tags
+```
+
+Might have to wait a moment for the table to get created.
+
+Collect trending tags:
+
+```sh
+python -m app.bq_collect.trending_tags
+```
+
 
 ### User Timelines
 
@@ -73,22 +92,37 @@ python -m app.bq_collect.all_timelines_threaded
 # USERS_LIMIT=5 MAX_THREADS=3 python -m app.bq_collect.all_timelines_threaded
 ```
 
+### User Profiles
 
-### Trending Tags
-
-First migrate the table:
-
-```sh
-DESTRUCTIVE=true python -m app.bq_migrate.trending_tags
-```
-
-Might have to wait a moment for the table to get created.
-
-Collect trending tags:
+Collect profile information for a given user:
 
 ```sh
-python -m app.bq_collect.trending_tags
+python -m app.bq_collect.user_profiles
+#COLLECTION_USERNAME="abc123" python -m app.bq_collect.user_profiles
 ```
+
+### Group Profiles
+
+Collect profile information for a given group:
+
+```sh
+python -m app.bq_collect.group_profiles
+
+# GROUP_NAME="abc123" python -m app.bq_collect.group_profiles
+```
+
+### Group Timelines
+
+
+Collect timeline statuses for a given group:
+
+```sh
+python -m app.bq_collect.group_timelines
+
+# GROUP_NAME="abc123" python -m app.bq_collect.group_timelines
+```
+
+
 
 ## Testing
 

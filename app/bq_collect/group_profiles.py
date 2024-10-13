@@ -1,6 +1,6 @@
 import os
 from time import sleep
-from datetime import date
+import datetime
 
 from pandas import DataFrame
 
@@ -8,6 +8,7 @@ from app.truth_service import TruthService, VERBOSE_MODE
 from app.bq_service import BigQueryService, generate_timestamp
 from app.db import EXPORTS_DIR
 from imports.groups import GROUPS
+
 
 
 class Group:
@@ -89,21 +90,45 @@ class Group:
 
 
 
+def fetch_groups_already_collected(bq, date=None):
+    if date:
+        date = date.replace(";","") # prevent sql injection for good measure
+    else:
+        date = datetime.date.today().strftime("%Y-%m-%d")
+
+    sql = f"""
+        SELECT DISTINCT group_id, slug, display_name, date(collected_at) as collected_on
+        FROM {bq.dataset_address}.group_profiles
+        WHERE date(collected_at) = '{date}'
+        ORDER BY slug
+    """
+    return list(bq.execute_query(sql, verbose=False))
+
+
 if __name__ == "__main__":
 
     ts = TruthService()
     bq = BigQueryService()
 
+    groups_collected = fetch_groups_already_collected(bq)
+    slugs_collected = [group["slug"].upper() for group in groups_collected]
+
     records = []
-    for group_info in GROUPS[0:3]:
+    for group_info in GROUPS:
         print("-------------")
         print(group_info)
         slug = group_info["slug"]
         display_name = group_info["display_name"]
 
+        if slug.upper() in slugs_collected:
+            print("ALREADY COLLECTED TODAY. SKIPPING...")
+            continue
+
         try:
+
             # we need to search by the name, not the slug
-            results = ts.client.search_simpler(resource_type="groups", query=display_name)
+            query = display_name.replace("#","") # some groups have # in the name, but search doesn't like #
+            results = ts.client.search_simpler(resource_type="groups", query=query)
             # match results on display name:
             group_info = [g for g in results if g["display_name"].upper() == display_name.upper()][0]
 
@@ -124,20 +149,32 @@ if __name__ == "__main__":
                 "tag_names": group.tag_names,
                 "collected_at": generate_timestamp()
             })
+
+        #except TypeError as err:
+        #    print("OOPS NO DATA")
+        #    print(results)
+        #    continue
+        except IndexError as err:
+            print("OOPS, NO MATCHING GROUPS FOUND")
+            continue
         except Exception as err:
-            print("OOPS", err)
+            print("OOPS", type(err), err)
             #breakpoint()
+            #sleep(3)
             continue
             #break # assume we are getting access restricted
 
         #sleep(2)
 
-    print("SAVING TO CSV...")
-    groups_df = DataFrame(records)
-    print(groups_df.head())
-    csv_filepath = os.path.join(EXPORTS_DIR, f"group_profiles_{date.today().strftime('%Y%m%d')}.csv")
-    groups_df.to_csv(csv_filepath, mode="a")
-    print(csv_filepath)
+    if any(records):
+        print("PROCESSED", len(records), "RECORDS")
 
-    print("SAVING TO BQ...")
-    bq.insert_records_in_batches(bq.group_profiles_table, records)
+        print("SAVING TO CSV...")
+        groups_df = DataFrame(records)
+        print(groups_df.head())
+        csv_filepath = os.path.join(EXPORTS_DIR, f"group_profiles_{datetime.date.today().strftime('%Y%m%d')}.csv")
+        groups_df.to_csv(csv_filepath, mode="a")
+        print(csv_filepath)
+
+        print("SAVING TO BQ...")
+        bq.insert_records_in_batches(bq.group_profiles_table, records)

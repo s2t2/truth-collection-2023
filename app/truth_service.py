@@ -27,8 +27,8 @@ class TruthService:
     def get_user_timeline(self, username=COLLECTION_USERNAME, replies=True, verbose=VERBOSE_MODE, since_id=None, created_after=None):
         return self.client.pull_statuses(username=username, replies=replies, verbose=verbose, since_id=since_id, created_after=created_after)
 
-    def get_group_timeline(self, username=COLLECTION_USERNAME, replies=True, verbose=VERBOSE_MODE, since_id=None, created_after=None):
-        breakpoint()
+    #def get_group_timeline(self, username=COLLECTION_USERNAME, replies=True, verbose=VERBOSE_MODE, since_id=None, created_after=None):
+    #    breakpoint()
 
 
     @staticmethod

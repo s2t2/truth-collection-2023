@@ -3,6 +3,16 @@
 
 google-credentials*.json
 
+
+
+
+
+imports/*.csv
+imports/groups.csv
+imports/groups.py
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

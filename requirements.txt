@@ -7,9 +7,10 @@ python-dotenv
 # 2023:
 # we are maintaining a fork of the truthbrush package from stanfordio
 # because this package is not on PyPI:
-git+https://github.com/stanfordio/truthbrush.git
+#git+https://github.com/stanfordio/truthbrush.git
 #git+https://github.com/s2t2/truthbrush.git
 #git+https://github.com/s2t2/truthbrush.git@timelines-2 #
+git+https://github.com/s2t2/truthbrush.git@more-tests
 #-e /Users/mjr/projects/s2t2/truthbrush
 #
 # 2024:

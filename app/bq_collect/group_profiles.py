@@ -7,100 +7,21 @@ from pandas import DataFrame
 from app.truth_service import TruthService, VERBOSE_MODE
 from app.bq_service import BigQueryService, generate_timestamp
 from app.db import EXPORTS_DIR
-from imports.groups import GROUPS
+from app.models.group_profile import GroupProfile
 
 
-
-class GroupProfile:
-
-    def __init__(self, attrs:dict):
-        self.attrs = attrs
-
-    @property
-    def group_id(self):
-        return self.attrs.get("id")
-
-    @property
-    def owner_id(self) -> str:
-        return self.attrs.get("owner").get("id") # {'id': '123'}
-
-    @property
-    def slug(self) -> str:
-        return self.attrs.get("slug") #
-
-    @property
-    def url(self) -> str:
-        return f"https://truthsocial.com/group/{self.slug}"
-
-    @property
-    def created_at(self) -> str:
-        return self.attrs.get("created_at") # '2023-04-20T00:00:00.000Z'
-
-    @property
-    def membership_required(self) -> bool:
-        return self.attrs.get("membership_required")
-
-    @property
-    def visibility(self) -> str:
-        return self.attrs.get("group_visibility") #> 'everyone'
-
-    @property
-    def display_name(self) -> str:
-        return self.attrs.get("display_name")
-
-    @property
-    def members_count(self) -> int:
-        return self.attrs.get("members_count") # int
-
-    @property
-    def avatar_url(self) -> str:
-        return self.attrs.get("avatar_static") or self.attrs.get("avatar")
-
-    @property
-    def header_url(self) -> str:
-        return self.attrs.get("header_static") or self.attrs.get("header")
-
-    @property
-    def note_html(self):
-        return self.attrs.get("note") # '<p>TOGETHER WE WILL MAKE AMERICA GREAT AGAIN! 🇺🇸</p>'
-
-    @property
-    def tags(self):
-        # {'created_at': '2022-02-15T16:49:18.371Z',
-        #    'id': 74,
-        #    'last_status_at': '2023-02-17T15:24:36.418Z',
-        #    'listable': True,
-        #    'max_score': None,
-        #    'max_score_at': None,
-        #    'name': 'MakeAmericaGreatAgain',
-        #    'requested_review_at': None,
-        #    'reviewed_at': None,
-        #    'trendable': True,
-        #    'updated_at': '2023-02-17T15:24:36.507Z',
-        #    'usable': True},
-        return self.attrs.get("tags")
-
-    @property
-    def tag_names(self):
-        return [tag["name"] for tag in self.tags]
-
-    @property
-    def tag_names_csv(self):
-        return ",".join(self.tag_names)
-
-
-
-def fetch_groups_already_collected(bq, date=None):
+def fetch_groups_for_collection(bq, date=None):
     if date:
         date = date.replace(";","") # prevent sql injection for good measure
     else:
         date = datetime.date.today().strftime("%Y-%m-%d")
 
     sql = f"""
-        SELECT DISTINCT group_id, slug, display_name, date(collected_at) as collected_on
-        FROM {bq.dataset_address}.group_profiles
-        WHERE date(collected_at) = '{date}'
-        ORDER BY slug
+        SELECT gp.group_id, g.slug, g.display_name, date(max(gp.collected_at)) as last_collected_on
+        FROM `{bq.dataset_address}.groups` g
+        LEFT JOIN `{bq.dataset_address}.group_profiles` gp ON gp.slug = g.slug
+        GROUP BY 1,2,3
+        HAVING (last_collected_on IS NULL) OR (last_collected_on < '{date}')
     """
     return list(bq.execute_query(sql, verbose=False))
 
@@ -110,24 +31,19 @@ if __name__ == "__main__":
     ts = TruthService()
     bq = BigQueryService()
 
-    groups_collected = fetch_groups_already_collected(bq)
-    slugs_collected = [group["slug"].upper() for group in groups_collected]
+    groups = fetch_groups_for_collection(bq)
 
     records = []
-    for group_info in GROUPS:
+    for group_info in groups:
         print("-------------")
         print(group_info)
+        group_id = group_info["group_id"]
         slug = group_info["slug"]
         display_name = group_info["display_name"]
 
-        if slug.upper() in slugs_collected:
-            print("ALREADY COLLECTED TODAY. SKIPPING...")
-            continue
-
         try:
-
-            # we need to search by the name, not the slug
-            query = display_name.replace("#","") # some groups have # in the name, but search doesn't like #
+            # search likes the names, not the slugs
+            query = display_name #.replace("#","") # some groups have # in the name, but search doesn't like #. JK # is fine?
             results = ts.client.search_simpler(resource_type="groups", query=query)
             # match results on display name:
             group_info = [g for g in results if g["display_name"].upper() == display_name.upper()][0]
@@ -156,6 +72,7 @@ if __name__ == "__main__":
         #    continue
         except IndexError as err:
             print("OOPS, NO MATCHING GROUPS FOUND")
+            breakpoint()
             continue
         except Exception as err:
             print("OOPS", type(err), err)
@@ -164,10 +81,9 @@ if __name__ == "__main__":
             continue
             #break # assume we are getting access restricted
 
-        #sleep(2)
+    print("PROCESSED", len(records), "RECORDS")
 
     if any(records):
-        print("PROCESSED", len(records), "RECORDS")
 
         print("SAVING TO CSV...")
         groups_df = DataFrame(records)

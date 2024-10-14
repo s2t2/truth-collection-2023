@@ -74,6 +74,10 @@ class BigQueryService():
     # TABLE REFERENCES
 
     @cached_property
+    def groups_table(self):
+        return self.client.get_table(f"{self.dataset_address}.groups") # API call
+
+    @cached_property
     def group_profiles_table(self):
         return self.client.get_table(f"{self.dataset_address}.group_profiles") # API call
 

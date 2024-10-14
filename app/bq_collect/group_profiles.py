@@ -11,7 +11,7 @@ from imports.groups import GROUPS
 
 
 
-class Group:
+class GroupProfile:
 
     def __init__(self, attrs:dict):
         self.attrs = attrs
@@ -132,7 +132,7 @@ if __name__ == "__main__":
             # match results on display name:
             group_info = [g for g in results if g["display_name"].upper() == display_name.upper()][0]
 
-            group = Group(group_info)
+            group = GroupProfile(group_info)
 
             records.append({
                 "group_id": group.group_id,

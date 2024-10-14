@@ -1,6 +1,4 @@
 
-pip:
-	pip install -r requirements.txt
 
 pytest:
 	pytest --disable-pytest-warnings

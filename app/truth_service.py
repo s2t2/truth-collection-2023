@@ -3,6 +3,7 @@ import os
 from pprint import pprint
 from datetime import timedelta, datetime, timezone
 from dateutil import parser as date_parser
+from functools import cached_property
 
 from truthbrush import Api
 from dotenv import load_dotenv
@@ -25,6 +26,10 @@ class TruthService:
 
     def get_user_timeline(self, username=COLLECTION_USERNAME, replies=True, verbose=VERBOSE_MODE, since_id=None, created_after=None):
         return self.client.pull_statuses(username=username, replies=replies, verbose=verbose, since_id=since_id, created_after=created_after)
+
+    #def get_group_timeline(self, username=COLLECTION_USERNAME, replies=True, verbose=VERBOSE_MODE, since_id=None, created_after=None):
+    #    breakpoint()
+
 
     @staticmethod
     def parse_status(status):
@@ -130,6 +135,12 @@ class TruthService:
             "recent_days": days
         }
 
+    @cached_property
+    def trending_tags_df(self):
+        tags = service.client.tags()
+        records = [service.parse_trending_tag(tag) for tag in tags]
+        return DataFrame(records)
+
 
 def to_utc(date_str):
     """Datetime formatter function. Ensures timezone is UTC."""
@@ -152,18 +163,15 @@ if __name__ == "__main__":
 
     service = TruthService()
 
-    tags = service.client.tags()
-    records = [service.parse_trending_tag(tag) for tag in tags]
-    print(len(records))
-    df = DataFrame(records)
-    print(df.head())
+    tags_df = service.trending_tags_df
+    print(tags_df.head())
 
     csv_filepath = os.path.join(EXPORTS_DIR, "trending_tags.csv")
     print("EXPORT TO CSV:", csv_filepath)
-    df.to_csv(csv_filepath, index=False)
+    tags_df.to_csv(csv_filepath, index=False)
 
     print("EXPORT TO SQLITE:")
-    db.insert_df(df=df, table_name="trending_tags")
+    db.insert_df(df=tags_df, table_name="trending_tags")
 
 
     #print("----------")
